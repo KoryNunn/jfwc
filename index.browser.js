@@ -10,6 +10,7 @@ function setCurrentSection(section){
     currentSection && currentSection.classList.remove('current');
     currentSection = section;
     currentSection.classList.add('current');
+    saveState();
 }
 
 function saveState(){
@@ -25,26 +26,51 @@ function loadState(){
     setCurrentSection(allSections[currentSectionIndex]);
 }
 
-window.addEventListener('load', function(){
+function nextSlide(){
+    var current = currentSection || document.querySelector('section'),
+        nextSection = current.nextElementSibling || current;
+
+    setCurrentSection(nextSection);
+}
+
+function previousSlide(){
+    var current = currentSection || document.querySelector('section'),
+        previousSection = current.previousElementSibling || current;
+
+    setCurrentSection(previousSection);
+}
+
+window.addEventListener('DOMContentLoaded', function(){
     loadState();
 
-    window.addEventListener('keyup', function(event){
-        var key = keycode(event),
-            currentSection = document.querySelector('section.current') || document.querySelector('section'),
-            nextSection = currentSection.nextElementSibling || currentSection,
-            previousSection = currentSection.previousElementSibling || currentSection;
-
+    window.addEventListener('keydown', function(event){
+        var key = keycode(event);
         event.preventDefault();
 
         if(key === 'left'){
-            setCurrentSection(previousSection);
+            previousSlide();
         }
 
         if(~['right', 'enter', 'space'].indexOf(key)){
-            setCurrentSection(nextSection);
+            nextSlide();
         }
+    });
 
-        saveState();
+    window.addEventListener('click', function(event){
+        // 20% border click moves to next/prev slide.
+
+        var x = 1 / window.innerWidth * event.pageX - 0.5;
+        x = (x < -0.3 || x > 0.3) ? x : 0;
+        var y = 1 / window.innerHeight * event.pageY - 0.5;
+        y = (y < -0.3 || y > 0.3) ? y : 0;
+
+        var direction = (x + y) / 2;
+
+        if(direction < 0){
+            previousSlide();
+        }else if(direction > 0){
+            nextSlide();
+        }
     });
 });
 },{"keycode":2}],2:[function(require,module,exports){
